@@ -4,8 +4,12 @@ puts "@@@ Starting"
 puts "@@@ Opening project"
 #### NOTE the top from set_top must match the name of a function in the code included
 #### in this way, Vivado will execute it as the entry point (imagine it as the 'main' of the code)
-open_project -reset projIsolation
-set_top isolation
+# open_project -reset projIsolation
+# set_top isolation
+
+open_project -reset projIsolationClassAllMu
+set_top isolation_class_allmu
+add_files src/iso_calculator.cpp
 
 add_files src/isolation.cpp
 # add_files src/df_conversions.cpp
@@ -20,7 +24,8 @@ open_solution -reset "solution1"
 #   xcku5p-sfvb784-3-e
 #   xcku115-flvf1924-2-i
 #   xcvu9p-flga2104-2l-e
-set_part {xc7vx690tffg1927-2}
+# set_part {xc7vx690tffg1927-2}
+set_part {xcku15p-ffva1760-2-e}
 
 # create_clock -period 5 -name default
 

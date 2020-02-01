@@ -8,8 +8,10 @@
 #include "ap_int.h"
 #include "ap_fixed.h"
 
-#define NTEST 20
+#define NTEST 6500 // input pattern has 6552
 #define NTMT 18
+
+#define VERBOSE false
 
 int roundDouble (double x){
     int r = (int) (x + 0.5);
@@ -49,7 +51,12 @@ int main()
     std::default_random_engine rndmEngine;
     std::uniform_real_distribution<double> distribution(10., 100.);
 
-    std::vector<std::vector<int> > in_data = read_in_data("/home/zynq/luca/test_code/patterns/mu_track_infolist.txt");
+    std::vector<std::vector<int> > in_data = read_in_data("/home/zynq/luca/MuL1HLSFW/MuonAlgorithms/patterns/mu_track_infolist.txt");
+
+    std::string ofile = "/home/zynq/luca/MuL1HLSFW/MuonAlgorithms/isolation_results.txt";
+    std::ofstream fout (ofile);
+    int nwritten = 0;
+
     // for (int il = 0; il < in_data.size(); ++il){
     //     std::cout << " LINE : " << il << " ";
     //     for (int iv = 0; iv < in_data.at(il).size(); ++iv)
@@ -221,21 +228,31 @@ int main()
 
             ap_uint<1> is_last = (itmt == NTMT - 1 ? 1 : 0);
 
-            std::cout << " @@@ TMT # " << itmt << " / " << NTMT << " ---- ISLAST? " << is_last.to_uint() << std::endl;
+            if (VERBOSE)
+            {
+                std::cout << " @@@ TMT # " << itmt << " / " << NTMT << " ---- ISLAST? " << is_last.to_uint() << std::endl;
 
-            // some debug cout
-            std::cout << " +++++ muon : pt " << mu_in.mu0.pt << "   .  eta = " << mu_in.mu0.eta << "   . phi = " << mu_in.mu0.phi << std::endl;
-            std::cout << " +++++ trk0 : pt " << trk_in.trk0.pt << "   .  eta = " << trk_in.trk0.eta << "   . phi = " << trk_in.trk0.phi << std::endl;
-            std::cout << " +++++ trk1 : pt " << trk_in.trk1.pt << "   .  eta = " << trk_in.trk1.eta << "   . phi = " << trk_in.trk1.phi << std::endl;
-            std::cout << " +++++ trk17 : pt " << trk_in.trk17.pt << "   .  eta = " << trk_in.trk17.eta << "   . phi = " << trk_in.trk17.phi << std::endl;
-            
+                // some debug cout
+                std::cout << " +++++ muon : pt " << mu_in.mu0.pt << "   .  eta = " << mu_in.mu0.eta << "   . phi = " << mu_in.mu0.phi << std::endl;
+                std::cout << " +++++ trk0 : pt " << trk_in.trk0.pt << "   .  eta = " << trk_in.trk0.eta << "   . phi = " << trk_in.trk0.phi << std::endl;
+                std::cout << " +++++ trk1 : pt " << trk_in.trk1.pt << "   .  eta = " << trk_in.trk1.eta << "   . phi = " << trk_in.trk1.phi << std::endl;
+                std::cout << " +++++ trk17 : pt " << trk_in.trk17.pt << "   .  eta = " << trk_in.trk17.eta << "   . phi = " << trk_in.trk17.phi << std::endl;
+            }
+
             // iso_muons_out outmus = test_algo(mu_in, trk_in, is_last);
-            ap_uint<1> isomu = isolation(mu_in.mu0, trk_in, is_last);
+            // ap_uint<1> isomu = isolation(mu_in.mu0, trk_in, is_last);
+            // ap_uint<1> isomu = isolation_class(mu_in.mu0, trk_in, is_last);
+            // ap_uint<1> isomu = isolation_class(mu_in.mu0, trk_in, is_last);
+            
+            iso_muon_input isomus;
+            isomus = isolation_class_allmu(mu_in, trk_in, is_last);
+            ap_uint<1> isomu = isomus.mu0.iso;
 
             // print the result
             if (is_last.to_uint() == 1)
             {
-                std::cout << "... mu0  : " <<  isomu.to_uint()  << std::endl;
+                if(VERBOSE)
+                    std::cout << "... mu0  : " <<  isomu.to_uint()  << std::endl;
 
                 // std::cout << "... mu0  : " <<  outmus.mu0.iso.to_uint()  << std::endl;
                 // std::cout << "... mu1  : " <<  outmus.mu1.iso.to_uint()  << std::endl;
@@ -255,6 +272,10 @@ int main()
                 // std::cout << "... mu15 : " <<  outmus.mu15.iso.to_uint() << std::endl;
                 // std::cout << "... mu16 : " <<  outmus.mu16.iso.to_uint() << std::endl;
                 // std::cout << "... mu17 : " <<  outmus.mu17.iso.to_uint() << std::endl;
+
+                // write the result to the output
+                fout << itest << " " << mu_in.mu0.pt.to_uint() << " " << mu_in.mu0.eta.to_int() << " " << mu_in.mu0.phi.to_int() << " " << isomu.to_uint() << std::endl;
+                ++nwritten;
             }
         }
 
@@ -304,4 +325,9 @@ int main()
 
         // std::cout << " .. itest : " << itest << " -> " << test_out.to_uint() << std::endl;
     }
+
+    fout.close();
+    std::cout << " ... " << nwritten << " lines written to file " << ofile << std::endl;
+
+
 }
