@@ -188,7 +188,6 @@ ap_uint<1> isolation (muon_t mu_in, track_conv_input trks_in, ap_uint<1> last_in
     if (DEBUG_ISOLATION) std::cout << " ~~~~~~~~> partial sum 14 is = " << psum14.to_uint() << std::endl;
     #endif
 
-
     accum_0 += psum0;
     accum_1 += psum1;
     accum_2 += psum2;

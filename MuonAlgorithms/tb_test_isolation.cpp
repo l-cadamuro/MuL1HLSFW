@@ -272,7 +272,6 @@ int main()
                 // std::cout << "... mu15 : " <<  outmus.mu15.iso.to_uint() << std::endl;
                 // std::cout << "... mu16 : " <<  outmus.mu16.iso.to_uint() << std::endl;
                 // std::cout << "... mu17 : " <<  outmus.mu17.iso.to_uint() << std::endl;
-
                 // write the result to the output
                 fout << itest << " " << mu_in.mu0.pt.to_uint() << " " << mu_in.mu0.eta.to_int() << " " << mu_in.mu0.phi.to_int() << " " << isomu.to_uint() << std::endl;
                 ++nwritten;
@@ -325,9 +324,7 @@ int main()
 
         // std::cout << " .. itest : " << itest << " -> " << test_out.to_uint() << std::endl;
     }
-
     fout.close();
     std::cout << " ... " << nwritten << " lines written to file " << ofile << std::endl;
-
 
 }
