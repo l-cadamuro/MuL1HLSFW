@@ -13,7 +13,7 @@ toplot = [
 plots = {
     'true' : 'minv_ta3mu_true.txt',
     'm0'   : 'minv_ta3mu_m0_true.txt',
-    'vivado_hls' : '/home/zynq/luca/MuL1HLSFW/MuonAlgorithms/tau3mu_inv_mass_hw_results.txt',
+    'vivado_hls' : '/home/lcadamur/MuL1HLSFW/MuonAlgorithms/tau3mu_inv_mass_hw_results.txt',
 }
 
 colors = {
