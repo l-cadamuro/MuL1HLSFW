@@ -45,36 +45,36 @@ iso_accum_t compute_trk_iso (muon_t in_mu, track_t in_trk)
     return part_sum;
 }
 
-void isolation(muon_t in_muons[N_MUON], track_t in_tracks[N_TRK_LINKS], ap_uint<1> is_last, ap_uint<1> iso_flags[N_MUON])
-{
-    #pragma HLS pipeline II=1
+// void isolation(muon_t in_muons[N_MUON], track_t in_tracks[N_TRK_LINKS], ap_uint<1> is_last, ap_uint<1> iso_flags[N_MUON])
+// {
+//     #pragma HLS pipeline II=1
     
-    #pragma HLS ARRAY_PARTITION variable=in_muons   complete
-    #pragma HLS ARRAY_PARTITION variable=in_tracks  complete
-    #pragma HLS ARRAY_PARTITION variable=iso_flags  complete
+//     #pragma HLS ARRAY_PARTITION variable=in_muons   complete
+//     #pragma HLS ARRAY_PARTITION variable=in_tracks  complete
+//     #pragma HLS ARRAY_PARTITION variable=iso_flags  complete
 
-    // for (size_t imu = 0; imu < N_MUON; ++imu)
-    // {
-    //     #pragma HLS unroll
-    //     iso_flags[imu] = isolation_single <imu> (in_muons[imu], in_tracks, is_last);
-    // }
+//     // for (size_t imu = 0; imu < N_MUON; ++imu)
+//     // {
+//     //     #pragma HLS unroll
+//     //     iso_flags[imu] = isolation_single <imu> (in_muons[imu], in_tracks, is_last);
+//     // }
 
-    // FIXME : to be unrolled automatically (loop idx cannot be used in template - need preprocessor loop expansion)
+//     // FIXME : to be unrolled automatically (loop idx cannot be used in template - need preprocessor loop expansion)
 
-    iso_flags[0] = isolation_single <0> (in_muons[0], in_tracks, is_last);
-    iso_flags[1] = isolation_single <1> (in_muons[1], in_tracks, is_last);
-    iso_flags[2] = isolation_single <2> (in_muons[2], in_tracks, is_last);
-    iso_flags[3] = isolation_single <3> (in_muons[3], in_tracks, is_last);
-    iso_flags[4] = isolation_single <4> (in_muons[4], in_tracks, is_last);
-    iso_flags[5] = isolation_single <5> (in_muons[5], in_tracks, is_last);
-    iso_flags[6] = isolation_single <6> (in_muons[6], in_tracks, is_last);
-    iso_flags[7] = isolation_single <7> (in_muons[7], in_tracks, is_last);
-    iso_flags[8] = isolation_single <8> (in_muons[8], in_tracks, is_last);
-    iso_flags[9] = isolation_single <9> (in_muons[9], in_tracks, is_last);
-    iso_flags[10] = isolation_single <10> (in_muons[10], in_tracks, is_last);
-    iso_flags[11] = isolation_single <11> (in_muons[11], in_tracks, is_last);
+//     iso_flags[0] = isolation_single <0> (in_muons[0], in_tracks, is_last);
+//     iso_flags[1] = isolation_single <1> (in_muons[1], in_tracks, is_last);
+//     iso_flags[2] = isolation_single <2> (in_muons[2], in_tracks, is_last);
+//     iso_flags[3] = isolation_single <3> (in_muons[3], in_tracks, is_last);
+//     iso_flags[4] = isolation_single <4> (in_muons[4], in_tracks, is_last);
+//     iso_flags[5] = isolation_single <5> (in_muons[5], in_tracks, is_last);
+//     iso_flags[6] = isolation_single <6> (in_muons[6], in_tracks, is_last);
+//     iso_flags[7] = isolation_single <7> (in_muons[7], in_tracks, is_last);
+//     iso_flags[8] = isolation_single <8> (in_muons[8], in_tracks, is_last);
+//     iso_flags[9] = isolation_single <9> (in_muons[9], in_tracks, is_last);
+//     iso_flags[10] = isolation_single <10> (in_muons[10], in_tracks, is_last);
+//     iso_flags[11] = isolation_single <11> (in_muons[11], in_tracks, is_last);
 
-}
+// }
 
 
 void isolation_allmu(muon_data_t in_muons, track_data_t in_tracks, ap_uint<1> is_last, muon_isodata_t& iso_flags)
@@ -104,11 +104,11 @@ ap_uint<1> isolation_single_muon_wrap(muon_t in_mu, track_data_t in_tracks, ap_u
 
 
 
-ap_uint<1> isolation_single_wrap(muon_t in_mu, track_t in_tracks[N_TRK_LINKS], ap_uint<1> is_last)
-{
-    #pragma HLS pipeline II=1
-    #pragma HLS ARRAY_PARTITION variable=in_tracks  complete
-    return isolation_single <999> (in_mu, in_tracks, is_last);
-    // return isolation_single_copy <999> (in_mu, in_tracks, is_last);
-}
+// ap_uint<1> isolation_single_wrap(muon_t in_mu, track_t in_tracks[N_TRK_LINKS], ap_uint<1> is_last)
+// {
+//     #pragma HLS pipeline II=1
+//     #pragma HLS ARRAY_PARTITION variable=in_tracks  complete
+//     return isolation_single <999> (in_mu, in_tracks, is_last);
+//     // return isolation_single_copy <999> (in_mu, in_tracks, is_last);
+// }
 
