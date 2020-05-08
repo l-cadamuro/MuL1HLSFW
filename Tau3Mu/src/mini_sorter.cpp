@@ -42,7 +42,7 @@ template <size_t instance>
 void mini_closer_elem(data_t data_in, data_t target, ap_uint<1> reset, data_t *data_out_0, data_t *data_out_1, data_t *data_out_2)
 {
     #pragma HLS pipeline
-    // #pragma HLS inline
+    #pragma HLS inline
 
     // #pragma HLS interface ap_none port=data_out_0
     // #pragma HLS interface ap_none port=data_out_1
