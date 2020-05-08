@@ -52,7 +52,8 @@ int main()
         }
 
         hw_minv_t data_out[N_MU];
-        tau_3mu(data_in, data_out);
+        // tau_3mu(data_in, data_out);
+        find_clusters(data_in, data_out);
 
         std::vector<muon_t> data_in_v;
         for (int i = 0; i < N_MU; ++i)

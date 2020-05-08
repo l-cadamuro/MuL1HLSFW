@@ -1,5 +1,5 @@
 #include "mini_sorter.h" // with the template function
-#include "miniSorter.h"  // by hand
+// #include "miniSorter.h"  // by hand
 
 // #ifndef __SYNTHESIS__
 // #include <iostream>
@@ -51,16 +51,27 @@ void mini_closer_elem(data_t data_in, data_t target, ap_uint<1> reset, data_t *d
     static spar_t shift_reg_spar[3];// = {MAX_SPAR, MAX_SPAR, MAX_SPAR};    // try reset value here
     static data_t shift_reg_data[3];// = {NULL_DATA, NULL_DATA, NULL_DATA}; // try reset value here
 
+    // static spar_t shift_reg_spar[3] = {3.14, 3.14, 3.14};    // try reset value here
+    // static data_t shift_reg_data[3];
+    // // static data_t shift_reg_data[3] = {NULL_DATA, NULL_DATA, NULL_DATA}; // try reset value here
+
     #pragma HLS array_partition variable = shift_reg_spar complete
     #pragma HLS array_partition variable = shift_reg_data complete
 
+    spar_t spar_in;
+    abs_delta(data_in.phi, target.phi, &spar_in);
+
     if (reset) {
-        Reset_to_default : for (size_t i = 0; i < 3; ++i){
+        Reset_to_default : for (size_t i = 1; i < 3; ++i){
             #pragma HLS unroll
             shift_reg_spar[i] = 3.14;
             // shift_reg_data[i] = NULL_DATA;
             make_null_data(&shift_reg_data[i]);
         }
+        
+        // the first will always go to the queue since other data are invalid
+        shift_reg_spar[0] = spar_in;
+        copy_data(data_in, &shift_reg_data[0]);
     }
 
     // spar_t val_for_spar;
@@ -72,62 +83,75 @@ void mini_closer_elem(data_t data_in, data_t target, ap_uint<1> reset, data_t *d
     // spar_t spar_in;
     // abs_delta(val_for_spar, val_for_spar_target, &spar_in);
 
-    spar_t spar_in;
-    abs_delta(data_in.phi, target.phi, &spar_in);
+    else
+    {    
 
-    bool gtr_0 = (spar_in < shift_reg_spar[0]);
-    bool gtr_1 = (spar_in < shift_reg_spar[1]);
-    bool gtr_2 = (spar_in < shift_reg_spar[2]);
+        bool gtr_0 = (spar_in < shift_reg_spar[0]);
+        bool gtr_1 = (spar_in < shift_reg_spar[1]);
+        bool gtr_2 = (spar_in < shift_reg_spar[2]);
 
-    // #ifndef __SYNTHESIS__
-    // if (instance == 0)
-    //     std::cout << "---------- instance " << instance << " enters " << data_in.phi << " target " << target.phi << " results " << gtr_0 << " " << gtr_1 << " " << gtr_2 << std::endl;
-    // #endif
+        // #ifndef __SYNTHESIS__
+        // if (instance == 0)
+        //     std::cout << "---------- instance " << instance << " enters " << data_in.phi << " target " << target.phi << " results " << gtr_0 << " " << gtr_1 << " " << gtr_2 << std::endl;
+        // #endif
 
-            if (gtr_0)
-    {
-        // shift_reg_data[2] = shift_reg_data[1];
-        // shift_reg_data[1] = shift_reg_data[0];
-        // shift_reg_data[0] = data_in;
-        copy_data(shift_reg_data[1], &shift_reg_data[2]);
-        copy_data(shift_reg_data[0], &shift_reg_data[1]);
-        copy_data(data_in, &shift_reg_data[0]);
+        if (gtr_0)
+        {
+            // shift_reg_data[2] = shift_reg_data[1];
+            // shift_reg_data[1] = shift_reg_data[0];
+            // shift_reg_data[0] = data_in;
+            copy_data(shift_reg_data[1], &shift_reg_data[2]);
+            copy_data(shift_reg_data[0], &shift_reg_data[1]);
+            copy_data(data_in, &shift_reg_data[0]);
 
-        shift_reg_spar[2] = shift_reg_spar[1];
-        shift_reg_spar[1] = shift_reg_spar[0];
-        shift_reg_spar[0] = spar_in;
+            shift_reg_spar[2] = shift_reg_spar[1];
+            shift_reg_spar[1] = shift_reg_spar[0];
+            shift_reg_spar[0] = spar_in;
+        }
+
+        else if (gtr_1)
+        {
+            // shift_reg_data[2] = shift_reg_data[1];
+            // shift_reg_data[1] = data_in;
+            copy_data(shift_reg_data[1], &shift_reg_data[2]);
+            copy_data(data_in, &shift_reg_data[1]);
+
+            shift_reg_spar[2] = shift_reg_spar[1];
+            shift_reg_spar[1] = spar_in;
+        }
+
+        else if (gtr_2)
+        {
+            // shift_reg_data[2] = data_in;
+            copy_data(data_in, &shift_reg_data[2]);
+            shift_reg_spar[2] = spar_in;
+        }
+
+        // *data_out_0 = shift_reg_data[0];
+        // *data_out_1 = shift_reg_data[1];
+        // *data_out_2 = shift_reg_data[2];
+
     }
 
-    else if (gtr_1)
-    {
-        // shift_reg_data[2] = shift_reg_data[1];
-        // shift_reg_data[1] = data_in;
-        copy_data(shift_reg_data[1], &shift_reg_data[2]);
-        copy_data(data_in, &shift_reg_data[1]);
+    copy_data(shift_reg_data[0], data_out_0);
+    copy_data(shift_reg_data[1], data_out_1);
+    copy_data(shift_reg_data[2], data_out_2);
 
-        shift_reg_spar[2] = shift_reg_spar[1];
-        shift_reg_spar[1] = spar_in;
-    }
-
-    else if (gtr_2)
-    {
-        // shift_reg_data[2] = data_in;
-        copy_data(data_in, &shift_reg_data[2]);
-        shift_reg_spar[2] = spar_in;
-    }
-
-    // *data_out_0 = shift_reg_data[0];
-    // *data_out_1 = shift_reg_data[1];
-    // *data_out_2 = shift_reg_data[2];
-
-    copy_data (shift_reg_data[0], data_out_0);
-    copy_data (shift_reg_data[1], data_out_1);
-    copy_data (shift_reg_data[2], data_out_2);
+    // if (reset)
+    // {
+    //     Reset_to_default: for (size_t i = 0; i < 3; ++i)
+    //     {
+    //         #pragma HLS unroll
+    //         shift_reg_spar[i] = 3.14;
+    //         // shift_reg_data[i] = NULL_DATA;
+    //         make_null_data(&shift_reg_data[i]);
+    //     }
+    // }
 }
+
 
 void find_clusters(muon_t in_muons[N_MU], hw_minv_t out_masses[N_MU])
 {
-    #pragma HLS inline
 
     #pragma HLS array_partition variable = in_muons complete
     #pragma HLS array_partition variable = out_masses complete
@@ -140,11 +164,18 @@ void find_clusters(muon_t in_muons[N_MU], hw_minv_t out_masses[N_MU])
     Process_in_mu : for (size_t i = 0; i < N_MU; ++i)
     {
         #pragma HLS pipeline
+
         ap_uint<1> reset;
         if (i == 0)
             reset = 1;
         else
             reset = 0;
+
+        // ap_uint<1> reset;
+        // if (i == N_MU - 1)
+        //     reset = 1;
+        // else
+        //     reset = 0;
 
         mini_closer_elem<0> (in_muons[i], in_muons[0],  reset, &groups[0][0],  &groups[0][1],  &groups[0][2]);
         mini_closer_elem<1> (in_muons[i], in_muons[1],  reset, &groups[1][0],  &groups[1][1],  &groups[1][2]);
@@ -172,6 +203,7 @@ void find_clusters(muon_t in_muons[N_MU], hw_minv_t out_masses[N_MU])
     }
 }
 
+/*
 void find_clusters_class(muon_t in_muons[N_MU], hw_minv_t out_masses[N_MU])
 {
     #pragma HLS inline
@@ -185,8 +217,10 @@ void find_clusters_class(muon_t in_muons[N_MU], hw_minv_t out_masses[N_MU])
     #pragma HLS array_partition variable = groups complete dim = 1
 
     static miniSorter ms[N_MU];
+#pragma HLS array_partition variable = ms complete
 
-    Process_in_mu: for (size_t i = 0; i < N_MU; ++i)
+Process_in_mu:
+    for (size_t i = 0; i < N_MU; ++i)
     {
         #pragma HLS pipeline
         ap_uint<1> reset;
@@ -220,9 +254,11 @@ void find_clusters_class(muon_t in_muons[N_MU], hw_minv_t out_masses[N_MU])
         // #endif
     }
 }
+*/
 
-void tau_3mu(muon_t in_muons[N_MU], hw_minv_t out_masses[N_MU])
-{
-    // find_clusters(in_muons, out_masses);
-    find_clusters_class(in_muons, out_masses);
-}
+// void tau_3mu(muon_t in_muons[N_MU], hw_minv_t out_masses[N_MU])
+// {
+//     find_clusters(in_muons, out_masses);
+//     // find_clusters_class(in_muons, out_masses);
+//     // find_clusters_unroll(in_muons, out_masses);
+// }
