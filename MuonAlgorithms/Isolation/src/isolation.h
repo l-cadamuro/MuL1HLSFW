@@ -1,7 +1,17 @@
 #ifndef ISOLATION_H
 #define ISOLATION_H
 
-#include "dataformats.h"
+// #include "dataformats.h"
+#include "dataformats_v2.h"
+
+#include "external_constants.h" // FIXME!
+
+
+#ifndef __SYNTHESIS__
+#define ISODEBUG false
+#include <iostream>
+using namespace std;
+#endif
 
 // checks the iso cone and returns partial sum
 iso_accum_t compute_trk_iso (muon_t in_mu, track_t in_trk);
@@ -11,18 +21,23 @@ iso_accum_t compute_trk_iso (muon_t in_mu, track_t in_trk);
 
 // void isolation(muon_t in_muons[N_MUON], track_t in_tracks[N_TRK_LINKS], ap_uint<1> is_last, ap_uint<1> iso_flags[N_MUON]);
 
-void isolation_allmu(muon_data_t in_muons, track_data_t in_tracks, ap_uint<1> is_last, muon_isodata_t& iso_flags);
+// void isolation_allmu_flags      (muon_data_t in_muons, track_data_t  in_tracks,  ap_uint<1> is_last, iso_accum_t iso_threshold, muon_isodata_t& iso_flags);
+// void isolation_allmu_9trk_flags (muon_data_t in_muons, track_data_9_t in_tracks, ap_uint<1> is_last, iso_accum_t iso_threshold, muon_isodata_t& iso_flags);
+
+void isolation_allmu      (muon_data_t in_muons, track_data_t  in_tracks,  ap_uint<1> is_last, iso_accum_t iso_threshold, isomuon_data_t& iso_muons);
+void isolation_allmu_9trk (muon_data_t in_muons, track_data_9_t in_tracks, ap_uint<1> is_last, iso_accum_t iso_threshold, isomuon_data_t& iso_muons);
+
 
 // ap_uint<1> isolation_single_wrap(muon_t in_mu, track_t in_tracks[N_TRK_LINKS], ap_uint<1> is_last);
 ap_uint<1> isolation_single_muon_wrap(muon_t in_mu, track_data_t in_tracks, ap_uint<1> is_last);
 
-// the delta rolls at overflow (dphi)
-template <typename tret, typename tin>
-tret abs_delta_roll (tin v1, tin v2);
+// // the delta rolls at overflow (dphi)
+// template <typename tret, typename tin>
+// tret abs_delta_roll (tin v1, tin v2);
 
-// the delta saturates at overflow (deta, dz)
-template <typename tret, typename tin>
-tret abs_delta_sat (tin v1, tin v2);
+// // the delta saturates at overflow (deta, dz)
+// template <typename tret, typename tin>
+// tret abs_delta_sat (tin v1, tin v2);
 
 // template <class tin, class tout>
 // tout abs_delta (tin v1, tin v2)
@@ -40,48 +55,80 @@ tret abs_delta_sat (tin v1, tin v2);
 ///////////////////////////////////////////////////////////////////////////////
 //// implementation of the templated function
 
+// template <typename tret, typename tin>
+// tret abs_delta_roll (tin v1, tin v2)
+// {
+//     #pragma HLS INLINE
+
+//     tret result;
+//     ap_fixed<tin::width+1, tin::iwidth+1> delta;    
+    
+//     delta = v1 - v2;
+    
+//     if (delta < 0)
+//         delta = -1*delta;
+//     else
+//         delta = delta;
+    
+//     result = delta;
+//     return result;
+// }
+
+// template <typename tret, typename tin>
+// tret abs_delta_sat (tin v1, tin v2)
+// {
+//     #pragma HLS INLINE
+
+//     tret result;
+//     ap_fixed<tin::width+1, tin::iwidth+1, AP_TRN, AP_SAT> delta;    
+    
+//     delta = v1 - v2;
+    
+//     if (delta < 0)
+//         delta = -1*delta;
+//     else
+//         delta = delta;
+    
+//     result = delta;
+//     return result;
+// }
+
+// handles deta that does not rollover (deta, dz0)
 template <typename tret, typename tin>
-tret abs_delta_roll (tin v1, tin v2)
+tret abs_delta_noroll (tin v1, tin v2)
 {
-    #pragma HLS INLINE
+    #pragma HLS inline
 
     tret result;
-    ap_fixed<tin::width+1, tin::iwidth+1> delta;    
-    
-    delta = v1 - v2;
-    
-    if (delta < 0)
-        delta = -1*delta;
+    if (v1 >= v2)
+        result = v1 - v2;
     else
-        delta = delta;
-    
-    result = delta;
+        result = v2 - v1;
+
     return result;
 }
 
 template <typename tret, typename tin>
-tret abs_delta_sat (tin v1, tin v2)
+tret abs_delta_roll (tin v1, tin v2)
 {
-    #pragma HLS INLINE
+    #pragma HLS inline
 
     tret result;
-    ap_fixed<tin::width+1, tin::iwidth+1, AP_TRN, AP_SAT> delta;    
-    
-    delta = v1 - v2;
-    
-    if (delta < 0)
-        delta = -1*delta;
+    tin  delta = v1 - v2;
+    if (delta >= 0)
+        result = delta;
     else
-        delta = delta;
-    
-    result = delta;
+        result = -1 * delta;
+
     return result;
 }
 
 template <int i_module>
-ap_uint<1> isolation_single_muon(muon_t in_mu, track_data_t in_tracks, ap_uint<1> is_last)
+ap_uint<1> isolation_single_muon(muon_t in_mu, track_data_t in_tracks, ap_uint<1> is_last, iso_accum_t iso_threshold)
 {
     #pragma HLS pipeline II=1
+    #pragma HLS interface ap_stable port=iso_threshold
+    #pragma HLS inline
     
     // the accumulators of the energy sums
     static iso_accum_t accum_0  = 0;
@@ -102,6 +149,31 @@ ap_uint<1> isolation_single_muon(muon_t in_mu, track_data_t in_tracks, ap_uint<1
     static iso_accum_t accum_15 = 0;
     static iso_accum_t accum_16 = 0;
     static iso_accum_t accum_17 = 0;
+
+    #ifndef __SYNTHESIS__
+    #if ISODEBUG
+    cout << "--- before incrementing " << endl;
+    cout << "... accum 0 : " << accum_0.to_double() << endl;
+    cout << "... accum 1 : " << accum_1.to_double() << endl;
+    cout << "... accum 2 : " << accum_2.to_double() << endl;
+    cout << "... accum 3 : " << accum_3.to_double() << endl;
+    cout << "... accum 4 : " << accum_4.to_double() << endl;
+    cout << "... accum 5 : " << accum_5.to_double() << endl;
+    cout << "... accum 6 : " << accum_6.to_double() << endl;
+    cout << "... accum 7 : " << accum_7.to_double() << endl;
+    cout << "... accum 8 : " << accum_8.to_double() << endl;
+    cout << "... accum 9 : " << accum_9.to_double() << endl;
+    cout << "... accum 10 : " << accum_10.to_double() << endl;
+    cout << "... accum 11 : " << accum_11.to_double() << endl;
+    cout << "... accum 12 : " << accum_12.to_double() << endl;
+    cout << "... accum 13 : " << accum_13.to_double() << endl;
+    cout << "... accum 14 : " << accum_14.to_double() << endl;
+    cout << "... accum 15 : " << accum_15.to_double() << endl;
+    cout << "... accum 16 : " << accum_16.to_double() << endl;
+    cout << "... accum 17 : " << accum_17.to_double() << endl;
+    cout << endl;
+    #endif
+    #endif
 
     ap_uint<1> result;
 
@@ -124,6 +196,30 @@ ap_uint<1> isolation_single_muon(muon_t in_mu, track_data_t in_tracks, ap_uint<1
     iso_accum_t psum_16 = compute_trk_iso (in_mu, in_tracks.trk_16);
     iso_accum_t psum_17 = compute_trk_iso (in_mu, in_tracks.trk_17);
 
+    #ifndef __SYNTHESIS__
+    #if ISODEBUG
+    cout << "... psum 0 : " << psum_0.to_double() << endl;
+    cout << "... psum 1 : " << psum_1.to_double() << endl;
+    cout << "... psum 2 : " << psum_2.to_double() << endl;
+    cout << "... psum 3 : " << psum_3.to_double() << endl;
+    cout << "... psum 4 : " << psum_4.to_double() << endl;
+    cout << "... psum 5 : " << psum_5.to_double() << endl;
+    cout << "... psum 6 : " << psum_6.to_double() << endl;
+    cout << "... psum 7 : " << psum_7.to_double() << endl;
+    cout << "... psum 8 : " << psum_8.to_double() << endl;
+    cout << "... psum 9 : " << psum_9.to_double() << endl;
+    cout << "... psum 10 : " << psum_10.to_double() << endl;
+    cout << "... psum 11 : " << psum_11.to_double() << endl;
+    cout << "... psum 12 : " << psum_12.to_double() << endl;
+    cout << "... psum 13 : " << psum_13.to_double() << endl;
+    cout << "... psum 14 : " << psum_14.to_double() << endl;
+    cout << "... psum 15 : " << psum_15.to_double() << endl;
+    cout << "... psum 16 : " << psum_16.to_double() << endl;
+    cout << "... psum 17 : " << psum_17.to_double() << endl;
+    cout << endl;
+    #endif
+    #endif
+
     accum_0 += psum_0;
     accum_1 += psum_1;
     accum_2 += psum_2;
@@ -143,37 +239,68 @@ ap_uint<1> isolation_single_muon(muon_t in_mu, track_data_t in_tracks, ap_uint<1
     accum_16 += psum_16;
     accum_17 += psum_17;
 
+    #ifndef __SYNTHESIS__
+    #if ISODEBUG
+    cout << "--- after incrementing " << endl;
+    cout << "... accum 0 : " << accum_0.to_double() << endl;
+    cout << "... accum 1 : " << accum_1.to_double() << endl;
+    cout << "... accum 2 : " << accum_2.to_double() << endl;
+    cout << "... accum 3 : " << accum_3.to_double() << endl;
+    cout << "... accum 4 : " << accum_4.to_double() << endl;
+    cout << "... accum 5 : " << accum_5.to_double() << endl;
+    cout << "... accum 6 : " << accum_6.to_double() << endl;
+    cout << "... accum 7 : " << accum_7.to_double() << endl;
+    cout << "... accum 8 : " << accum_8.to_double() << endl;
+    cout << "... accum 9 : " << accum_9.to_double() << endl;
+    cout << "... accum 10 : " << accum_10.to_double() << endl;
+    cout << "... accum 11 : " << accum_11.to_double() << endl;
+    cout << "... accum 12 : " << accum_12.to_double() << endl;
+    cout << "... accum 13 : " << accum_13.to_double() << endl;
+    cout << "... accum 14 : " << accum_14.to_double() << endl;
+    cout << "... accum 15 : " << accum_15.to_double() << endl;
+    cout << "... accum 16 : " << accum_16.to_double() << endl;
+    cout << "... accum 17 : " << accum_17.to_double() << endl;
+    cout << endl;
+    #endif
+    #endif
+
     if (is_last == 0)
         result = 0; // an empty result
 
     else
     {
         // compute the final energy sum
-        iso_accum_t tot_sum = 0;
-        tot_sum = psum_0
-            + psum_1;
-            + psum_2;
-            + psum_3;
-            + psum_4;
-            + psum_5;
-            + psum_6;
-            + psum_7;
-            + psum_8;
-            + psum_9;
-            + psum_10;
-            + psum_11;
-            + psum_12;
-            + psum_13;
-            + psum_14;
-            + psum_15;
-            + psum_16;
-            + psum_17;
+        iso_accum_t tot_sum;
+        tot_sum = accum_0
+            + accum_1
+            + accum_2
+            + accum_3
+            + accum_4
+            + accum_5
+            + accum_6
+            + accum_7
+            + accum_8
+            + accum_9
+            + accum_10
+            + accum_11
+            + accum_12
+            + accum_13
+            + accum_14
+            + accum_15
+            + accum_16
+            + accum_17;
 
-        if (tot_sum < c_iso_sumpt_thr)
+        if (tot_sum < iso_threshold)
             result = 1;
         else
             result = 0;
 
+        #ifndef __SYNTHESIS__
+        #if ISODEBUG
+        cout << ".......  is last, tot sum is " << tot_sum.to_double() << endl;
+        cout << ".......  is last, iso result is " << result.to_double() << endl;
+        #endif
+        #endif
         // reset the accumulators
         accum_0  = 0;
         accum_1  = 0;
@@ -197,6 +324,141 @@ ap_uint<1> isolation_single_muon(muon_t in_mu, track_data_t in_tracks, ap_uint<1
 
     return result;
 }
+
+
+template <int i_module>
+ap_uint<1> isolation_single_muon_9trk(muon_t in_mu, track_data_9_t in_tracks, ap_uint<1> is_last, iso_accum_t iso_threshold)
+{
+    #pragma HLS pipeline II=1
+    #pragma HLS interface ap_stable port=iso_threshold
+    #pragma HLS inline
+
+    // the accumulators of the energy sums
+    static iso_accum_t accum_0  = 0;
+    static iso_accum_t accum_1  = 0;
+    static iso_accum_t accum_2  = 0;
+    static iso_accum_t accum_3  = 0;
+    static iso_accum_t accum_4  = 0;
+    static iso_accum_t accum_5  = 0;
+    static iso_accum_t accum_6  = 0;
+    static iso_accum_t accum_7  = 0;
+    static iso_accum_t accum_8  = 0;
+
+    #ifndef __SYNTHESIS__
+    #if ISODEBUG
+    cout << "--- before incrementing " << endl;
+    cout << "... accum 0 : " << accum_0.to_double() << endl;
+    cout << "... accum 1 : " << accum_1.to_double() << endl;
+    cout << "... accum 2 : " << accum_2.to_double() << endl;
+    cout << "... accum 3 : " << accum_3.to_double() << endl;
+    cout << "... accum 4 : " << accum_4.to_double() << endl;
+    cout << "... accum 5 : " << accum_5.to_double() << endl;
+    cout << "... accum 6 : " << accum_6.to_double() << endl;
+    cout << "... accum 7 : " << accum_7.to_double() << endl;
+    cout << "... accum 8 : " << accum_8.to_double() << endl;
+    cout << endl;
+    #endif
+    #endif
+
+    ap_uint<1> result;
+
+    iso_accum_t psum_0 = compute_trk_iso (in_mu, in_tracks.trk_0);
+    iso_accum_t psum_1 = compute_trk_iso (in_mu, in_tracks.trk_1);
+    iso_accum_t psum_2 = compute_trk_iso (in_mu, in_tracks.trk_2);
+    iso_accum_t psum_3 = compute_trk_iso (in_mu, in_tracks.trk_3);
+    iso_accum_t psum_4 = compute_trk_iso (in_mu, in_tracks.trk_4);
+    iso_accum_t psum_5 = compute_trk_iso (in_mu, in_tracks.trk_5);
+    iso_accum_t psum_6 = compute_trk_iso (in_mu, in_tracks.trk_6);
+    iso_accum_t psum_7 = compute_trk_iso (in_mu, in_tracks.trk_7);
+    iso_accum_t psum_8 = compute_trk_iso (in_mu, in_tracks.trk_8);
+
+    #ifndef __SYNTHESIS__
+    #if ISODEBUG
+    cout << "... psum 0 : " << psum_0.to_double() << endl;
+    cout << "... psum 1 : " << psum_1.to_double() << endl;
+    cout << "... psum 2 : " << psum_2.to_double() << endl;
+    cout << "... psum 3 : " << psum_3.to_double() << endl;
+    cout << "... psum 4 : " << psum_4.to_double() << endl;
+    cout << "... psum 5 : " << psum_5.to_double() << endl;
+    cout << "... psum 6 : " << psum_6.to_double() << endl;
+    cout << "... psum 7 : " << psum_7.to_double() << endl;
+    cout << "... psum 8 : " << psum_8.to_double() << endl;
+    cout << endl;
+    #endif
+    #endif
+
+    accum_0 += psum_0;
+    accum_1 += psum_1;
+    accum_2 += psum_2;
+    accum_3 += psum_3;
+    accum_4 += psum_4;
+    accum_5 += psum_5;
+    accum_6 += psum_6;
+    accum_7 += psum_7;
+    accum_8 += psum_8;
+
+    #ifndef __SYNTHESIS__
+    #if ISODEBUG
+    cout << "--- after incrementing " << endl;
+    cout << "... accum 0 : " << accum_0.to_double() << endl;
+    cout << "... accum 1 : " << accum_1.to_double() << endl;
+    cout << "... accum 2 : " << accum_2.to_double() << endl;
+    cout << "... accum 3 : " << accum_3.to_double() << endl;
+    cout << "... accum 4 : " << accum_4.to_double() << endl;
+    cout << "... accum 5 : " << accum_5.to_double() << endl;
+    cout << "... accum 6 : " << accum_6.to_double() << endl;
+    cout << "... accum 7 : " << accum_7.to_double() << endl;
+    cout << "... accum 8 : " << accum_8.to_double() << endl;
+    cout << endl;
+    #endif
+    #endif
+
+    if (is_last == 0)
+        result = 0; // an empty result
+
+    else
+    {
+        // compute the final energy sum
+        iso_accum_t tot_sum;
+        tot_sum = accum_0
+            + accum_1
+            + accum_2
+            + accum_3
+            + accum_4
+            + accum_5
+            + accum_6
+            + accum_7
+            + accum_8;
+
+        if (tot_sum < iso_threshold)
+            result = 1;
+        else
+            result = 0;
+
+        #ifndef __SYNTHESIS__
+        #if ISODEBUG
+        cout << ".......  is last, tot sum is " << tot_sum.to_double() << endl;
+        cout << ".......  is last, iso result is " << result.to_double() << endl;
+        #endif
+        #endif
+        // reset the accumulators
+        accum_0  = 0;
+        accum_1  = 0;
+        accum_2  = 0;
+        accum_3  = 0;
+        accum_4  = 0;
+        accum_5  = 0;
+        accum_6  = 0;
+        accum_7  = 0;
+        accum_8  = 0;
+    }
+
+    return result;
+}
+
+
+
+
 
 
 // template <int i_module>

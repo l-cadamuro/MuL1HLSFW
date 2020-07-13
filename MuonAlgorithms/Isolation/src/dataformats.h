@@ -91,6 +91,18 @@ struct track_data_t {
     track_t trk_17;
 };
 
+struct track_data_9_t {
+    track_t trk_0;
+    track_t trk_1;
+    track_t trk_2;
+    track_t trk_3;
+    track_t trk_4;
+    track_t trk_5;
+    track_t trk_6;
+    track_t trk_7;
+    track_t trk_8;
+};
+
 struct muon_data_t {
     muon_t mu_0;
     muon_t mu_1;
@@ -124,10 +136,13 @@ struct muon_isodata_t {
 ////// formats and constants specific to the isolation algorithms
 ////// FIXME : move to another "constants.h" header?
 
-typedef ap_ufixed<5, 5, AP_TRN, AP_SAT> iso_accum_t; // threshold is typically integer in GeV and of a few GeV -> 5 bits, all integers
+// threshold is typically integer in GeV and of a few GeV -> 5 bits, all integers
+// FIXME : may not be ideal when summing many trks with fractional pt (gets lost in sum?)
+typedef ap_ufixed<5, 5, AP_TRN, AP_SAT> iso_accum_t;
 
-// #define c_iso_sumpt_thr  12  // < 
-#define c_iso_sumpt_thr  1  // purely for debug
+//#define c_iso_sumpt_thr  12  // < 
+// #define c_iso_sumpt_thr  1  // purely for debug
+#define c_iso_sumpt_thr  3  // <
 #define c_iso_dangle_max 0.2 // < 
 #define c_iso_dz_max     1.0 // < 
 #define c_iso_pt_min     3.0 // >= 
