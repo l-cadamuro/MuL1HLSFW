@@ -24,12 +24,12 @@ iso_accum_t compute_trk_iso (muon_t in_mu, track_t in_trk);
 // void isolation_allmu_flags      (muon_data_t in_muons, track_data_t  in_tracks,  ap_uint<1> is_last, iso_accum_t iso_threshold, muon_isodata_t& iso_flags);
 // void isolation_allmu_9trk_flags (muon_data_t in_muons, track_data_9_t in_tracks, ap_uint<1> is_last, iso_accum_t iso_threshold, muon_isodata_t& iso_flags);
 
-void isolation_allmu      (muon_data_t in_muons, track_data_t  in_tracks,  ap_uint<1> is_last, iso_accum_t iso_threshold, isomuon_data_t& iso_muons);
-void isolation_allmu_9trk (muon_data_t in_muons, track_data_9_t in_tracks, ap_uint<1> is_last, iso_accum_t iso_threshold, isomuon_data_t& iso_muons);
+void isolation_allmu      (muon_data_t in_muons, track_data_t  in_tracks,  ap_uint<1> is_last, iso_accum_t iso_threshold_1, iso_accum_t iso_threshold_2, isomuon_data_t& iso_muons);
+void isolation_allmu_9trk (muon_data_t in_muons, track_data_9_t in_tracks, ap_uint<1> is_last, iso_accum_t iso_threshold_1, iso_accum_t iso_threshold_2, isomuon_data_t& iso_muons);
 
 
 // ap_uint<1> isolation_single_wrap(muon_t in_mu, track_t in_tracks[N_TRK_LINKS], ap_uint<1> is_last);
-ap_uint<1> isolation_single_muon_wrap(muon_t in_mu, track_data_t in_tracks, ap_uint<1> is_last);
+// ap_uint<1> isolation_single_muon_wrap(muon_t in_mu, track_data_t in_tracks, ap_uint<1> is_last);
 
 // // the delta rolls at overflow (dphi)
 // template <typename tret, typename tin>
@@ -124,10 +124,11 @@ tret abs_delta_roll (tin v1, tin v2)
 }
 
 template <int i_module>
-ap_uint<1> isolation_single_muon(muon_t in_mu, track_data_t in_tracks, ap_uint<1> is_last, iso_accum_t iso_threshold)
+hw_iso_t isolation_single_muon(muon_t in_mu, track_data_t in_tracks, ap_uint<1> is_last, iso_accum_t iso_threshold_1, iso_accum_t iso_threshold_2)
 {
     #pragma HLS pipeline II=1
-    #pragma HLS interface ap_stable port=iso_threshold
+    #pragma HLS interface ap_stable port=iso_threshold_1
+    #pragma HLS interface ap_stable port=iso_threshold_2
     #pragma HLS inline
     
     // the accumulators of the energy sums
@@ -175,7 +176,7 @@ ap_uint<1> isolation_single_muon(muon_t in_mu, track_data_t in_tracks, ap_uint<1
     #endif
     #endif
 
-    ap_uint<1> result;
+    hw_iso_t result;
 
     iso_accum_t psum_0 = compute_trk_iso (in_mu, in_tracks.trk_0);
     iso_accum_t psum_1 = compute_trk_iso (in_mu, in_tracks.trk_1);
@@ -290,10 +291,18 @@ ap_uint<1> isolation_single_muon(muon_t in_mu, track_data_t in_tracks, ap_uint<1
             + accum_16
             + accum_17;
 
-        if (tot_sum < iso_threshold)
-            result = 1;
-        else
-            result = 0;
+        // if (tot_sum < iso_threshold_1)
+        //     result.range(0,0) = 1;
+        // else
+        //     result.range(0,0) = 0;
+
+        // if (tot_sum < iso_threshold_2)
+        //     result.range(1,1) = 1;
+        // else
+        //     result.range(1,1) = 0;
+
+        result.range(0,0) = (tot_sum < iso_threshold_1 ? 1 : 0);
+        result.range(1,1) = (tot_sum < iso_threshold_2 ? 1 : 0);
 
         #ifndef __SYNTHESIS__
         #if ISODEBUG
@@ -327,10 +336,11 @@ ap_uint<1> isolation_single_muon(muon_t in_mu, track_data_t in_tracks, ap_uint<1
 
 
 template <int i_module>
-ap_uint<1> isolation_single_muon_9trk(muon_t in_mu, track_data_9_t in_tracks, ap_uint<1> is_last, iso_accum_t iso_threshold)
+hw_iso_t isolation_single_muon_9trk(muon_t in_mu, track_data_9_t in_tracks, ap_uint<1> is_last, iso_accum_t iso_threshold_1, iso_accum_t iso_threshold_2)
 {
     #pragma HLS pipeline II=1
-    #pragma HLS interface ap_stable port=iso_threshold
+    #pragma HLS interface ap_stable port=iso_threshold_1
+    #pragma HLS interface ap_stable port=iso_threshold_2
     #pragma HLS inline
 
     // the accumulators of the energy sums
@@ -360,7 +370,7 @@ ap_uint<1> isolation_single_muon_9trk(muon_t in_mu, track_data_9_t in_tracks, ap
     #endif
     #endif
 
-    ap_uint<1> result;
+    hw_iso_t result;
 
     iso_accum_t psum_0 = compute_trk_iso (in_mu, in_tracks.trk_0);
     iso_accum_t psum_1 = compute_trk_iso (in_mu, in_tracks.trk_1);
@@ -430,10 +440,18 @@ ap_uint<1> isolation_single_muon_9trk(muon_t in_mu, track_data_9_t in_tracks, ap
             + accum_7
             + accum_8;
 
-        if (tot_sum < iso_threshold)
-            result = 1;
-        else
-            result = 0;
+        // if (tot_sum < iso_threshold_1)
+        //     result.range(0,0) = 1;
+        // else
+        //     result.range(0,0) = 0;
+
+        // if (tot_sum < iso_threshold_2)
+        //     result.range(1,1) = 1;
+        // else
+        //     result.range(1,1) = 0;
+
+        result.range(0,0) = (tot_sum < iso_threshold_1 ? 1 : 0);
+        result.range(1,1) = (tot_sum < iso_threshold_2 ? 1 : 0);
 
         #ifndef __SYNTHESIS__
         #if ISODEBUG

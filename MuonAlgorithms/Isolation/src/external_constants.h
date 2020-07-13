@@ -11,7 +11,8 @@
 
 // the track LSB is 1/2^5 GeV
 // the angle LSB is (2pi)/(2^13) rad ~= 0.000767 rad
-#define c_iso_sumpt_thr  96  // < , 96  x 1/2^5    = 3 GeV
+#define c_iso_sumpt_thr_1  96  // < , 96  x 1/2^5    = 3 GeV
+#define c_iso_sumpt_thr_2  96  // < , 96  x 1/2^5    = 3 GeV
 
 #define N_TRK_LINKS    18 // total number of input links (each gives 1 trk / clk)
 // #define N_TRK_PER_LINK 18 // total number of track serially trasmitted on each link

@@ -150,23 +150,24 @@ iso_accum_t compute_trk_iso (muon_t in_mu, track_t in_trk)
 //     iso_flags.isomu_11 = isolation_single_muon_9trk <11> (in_muons.mu_11, in_tracks, is_last, iso_threshold);
 // }
 
-void isolation_allmu(muon_data_t in_muons, track_data_t in_tracks, ap_uint<1> is_last, iso_accum_t iso_threshold, isomuon_data_t& iso_muons)
+void isolation_allmu(muon_data_t in_muons, track_data_t in_tracks, ap_uint<1> is_last, iso_accum_t iso_threshold_1, iso_accum_t iso_threshold_2, isomuon_data_t& iso_muons)
 {
     #pragma HLS pipeline II=1
-    #pragma HLS interface ap_stable port=iso_threshold
+    #pragma HLS interface ap_stable port=iso_threshold_1
+    #pragma HLS interface ap_stable port=iso_threshold_2
 
-    iso_muons.mu_0.isoflags  = isolation_single_muon <0>  (in_muons.mu_0,  in_tracks, is_last, iso_threshold);
-    iso_muons.mu_1.isoflags  = isolation_single_muon <1>  (in_muons.mu_1,  in_tracks, is_last, iso_threshold);
-    iso_muons.mu_2.isoflags  = isolation_single_muon <2>  (in_muons.mu_2,  in_tracks, is_last, iso_threshold);
-    iso_muons.mu_3.isoflags  = isolation_single_muon <3>  (in_muons.mu_3,  in_tracks, is_last, iso_threshold);
-    iso_muons.mu_4.isoflags  = isolation_single_muon <4>  (in_muons.mu_4,  in_tracks, is_last, iso_threshold);
-    iso_muons.mu_5.isoflags  = isolation_single_muon <5>  (in_muons.mu_5,  in_tracks, is_last, iso_threshold);
-    iso_muons.mu_6.isoflags  = isolation_single_muon <6>  (in_muons.mu_6,  in_tracks, is_last, iso_threshold);
-    iso_muons.mu_7.isoflags  = isolation_single_muon <7>  (in_muons.mu_7,  in_tracks, is_last, iso_threshold);
-    iso_muons.mu_8.isoflags  = isolation_single_muon <8>  (in_muons.mu_8,  in_tracks, is_last, iso_threshold);
-    iso_muons.mu_9.isoflags  = isolation_single_muon <9>  (in_muons.mu_9,  in_tracks, is_last, iso_threshold);
-    iso_muons.mu_10.isoflags = isolation_single_muon <10> (in_muons.mu_10, in_tracks, is_last, iso_threshold);
-    iso_muons.mu_11.isoflags = isolation_single_muon <11> (in_muons.mu_11, in_tracks, is_last, iso_threshold);
+    iso_muons.mu_0.isoflags  = isolation_single_muon <0>  (in_muons.mu_0,  in_tracks, is_last, iso_threshold_1, iso_threshold_2);
+    iso_muons.mu_1.isoflags  = isolation_single_muon <1>  (in_muons.mu_1,  in_tracks, is_last, iso_threshold_1, iso_threshold_2);
+    iso_muons.mu_2.isoflags  = isolation_single_muon <2>  (in_muons.mu_2,  in_tracks, is_last, iso_threshold_1, iso_threshold_2);
+    iso_muons.mu_3.isoflags  = isolation_single_muon <3>  (in_muons.mu_3,  in_tracks, is_last, iso_threshold_1, iso_threshold_2);
+    iso_muons.mu_4.isoflags  = isolation_single_muon <4>  (in_muons.mu_4,  in_tracks, is_last, iso_threshold_1, iso_threshold_2);
+    iso_muons.mu_5.isoflags  = isolation_single_muon <5>  (in_muons.mu_5,  in_tracks, is_last, iso_threshold_1, iso_threshold_2);
+    iso_muons.mu_6.isoflags  = isolation_single_muon <6>  (in_muons.mu_6,  in_tracks, is_last, iso_threshold_1, iso_threshold_2);
+    iso_muons.mu_7.isoflags  = isolation_single_muon <7>  (in_muons.mu_7,  in_tracks, is_last, iso_threshold_1, iso_threshold_2);
+    iso_muons.mu_8.isoflags  = isolation_single_muon <8>  (in_muons.mu_8,  in_tracks, is_last, iso_threshold_1, iso_threshold_2);
+    iso_muons.mu_9.isoflags  = isolation_single_muon <9>  (in_muons.mu_9,  in_tracks, is_last, iso_threshold_1, iso_threshold_2);
+    iso_muons.mu_10.isoflags = isolation_single_muon <10> (in_muons.mu_10, in_tracks, is_last, iso_threshold_1, iso_threshold_2);
+    iso_muons.mu_11.isoflags = isolation_single_muon <11> (in_muons.mu_11, in_tracks, is_last, iso_threshold_1, iso_threshold_2);
 
     iso_muons.mu_0.mu   = in_muons.mu_0;
     iso_muons.mu_1.mu   = in_muons.mu_1;
@@ -182,23 +183,24 @@ void isolation_allmu(muon_data_t in_muons, track_data_t in_tracks, ap_uint<1> is
     iso_muons.mu_11.mu  = in_muons.mu_11;
 }
 
-void isolation_allmu_9trk(muon_data_t in_muons, track_data_9_t in_tracks, ap_uint<1> is_last, iso_accum_t iso_threshold, isomuon_data_t& iso_muons)
+void isolation_allmu_9trk(muon_data_t in_muons, track_data_9_t in_tracks, ap_uint<1> is_last, iso_accum_t iso_threshold_1, iso_accum_t iso_threshold_2, isomuon_data_t& iso_muons)
 {
     #pragma HLS pipeline II=1
-    #pragma HLS interface ap_stable port=iso_threshold
+    #pragma HLS interface ap_stable port=iso_threshold_1
+    #pragma HLS interface ap_stable port=iso_threshold_2
 
-    iso_muons.mu_0.isoflags  = isolation_single_muon_9trk <0>  (in_muons.mu_0,  in_tracks, is_last, iso_threshold);
-    iso_muons.mu_1.isoflags  = isolation_single_muon_9trk <1>  (in_muons.mu_1,  in_tracks, is_last, iso_threshold);
-    iso_muons.mu_2.isoflags  = isolation_single_muon_9trk <2>  (in_muons.mu_2,  in_tracks, is_last, iso_threshold);
-    iso_muons.mu_3.isoflags  = isolation_single_muon_9trk <3>  (in_muons.mu_3,  in_tracks, is_last, iso_threshold);
-    iso_muons.mu_4.isoflags  = isolation_single_muon_9trk <4>  (in_muons.mu_4,  in_tracks, is_last, iso_threshold);
-    iso_muons.mu_5.isoflags  = isolation_single_muon_9trk <5>  (in_muons.mu_5,  in_tracks, is_last, iso_threshold);
-    iso_muons.mu_6.isoflags  = isolation_single_muon_9trk <6>  (in_muons.mu_6,  in_tracks, is_last, iso_threshold);
-    iso_muons.mu_7.isoflags  = isolation_single_muon_9trk <7>  (in_muons.mu_7,  in_tracks, is_last, iso_threshold);
-    iso_muons.mu_8.isoflags  = isolation_single_muon_9trk <8>  (in_muons.mu_8,  in_tracks, is_last, iso_threshold);
-    iso_muons.mu_9.isoflags  = isolation_single_muon_9trk <9>  (in_muons.mu_9,  in_tracks, is_last, iso_threshold);
-    iso_muons.mu_10.isoflags = isolation_single_muon_9trk <10> (in_muons.mu_10, in_tracks, is_last, iso_threshold);
-    iso_muons.mu_11.isoflags = isolation_single_muon_9trk <11> (in_muons.mu_11, in_tracks, is_last, iso_threshold);
+    iso_muons.mu_0.isoflags  = isolation_single_muon_9trk <0>  (in_muons.mu_0,  in_tracks, is_last, iso_threshold_1, iso_threshold_2);
+    iso_muons.mu_1.isoflags  = isolation_single_muon_9trk <1>  (in_muons.mu_1,  in_tracks, is_last, iso_threshold_1, iso_threshold_2);
+    iso_muons.mu_2.isoflags  = isolation_single_muon_9trk <2>  (in_muons.mu_2,  in_tracks, is_last, iso_threshold_1, iso_threshold_2);
+    iso_muons.mu_3.isoflags  = isolation_single_muon_9trk <3>  (in_muons.mu_3,  in_tracks, is_last, iso_threshold_1, iso_threshold_2);
+    iso_muons.mu_4.isoflags  = isolation_single_muon_9trk <4>  (in_muons.mu_4,  in_tracks, is_last, iso_threshold_1, iso_threshold_2);
+    iso_muons.mu_5.isoflags  = isolation_single_muon_9trk <5>  (in_muons.mu_5,  in_tracks, is_last, iso_threshold_1, iso_threshold_2);
+    iso_muons.mu_6.isoflags  = isolation_single_muon_9trk <6>  (in_muons.mu_6,  in_tracks, is_last, iso_threshold_1, iso_threshold_2);
+    iso_muons.mu_7.isoflags  = isolation_single_muon_9trk <7>  (in_muons.mu_7,  in_tracks, is_last, iso_threshold_1, iso_threshold_2);
+    iso_muons.mu_8.isoflags  = isolation_single_muon_9trk <8>  (in_muons.mu_8,  in_tracks, is_last, iso_threshold_1, iso_threshold_2);
+    iso_muons.mu_9.isoflags  = isolation_single_muon_9trk <9>  (in_muons.mu_9,  in_tracks, is_last, iso_threshold_1, iso_threshold_2);
+    iso_muons.mu_10.isoflags = isolation_single_muon_9trk <10> (in_muons.mu_10, in_tracks, is_last, iso_threshold_1, iso_threshold_2);
+    iso_muons.mu_11.isoflags = isolation_single_muon_9trk <11> (in_muons.mu_11, in_tracks, is_last, iso_threshold_1, iso_threshold_2);
 
     iso_muons.mu_0.mu   = in_muons.mu_0;
     iso_muons.mu_1.mu   = in_muons.mu_1;
@@ -216,13 +218,14 @@ void isolation_allmu_9trk(muon_data_t in_muons, track_data_9_t in_tracks, ap_uin
 }
 
 
-ap_uint<1> isolation_single_muon_wrap(muon_t in_mu, track_data_t in_tracks, iso_accum_t iso_threshold, ap_uint<1> is_last)
-{
-    #pragma HLS pipeline II=1
-    #pragma HLS interface ap_stable port=iso_threshold
+// ap_uint<1> isolation_single_muon_wrap(muon_t in_mu, track_data_t in_tracks, iso_accum_t iso_threshold_1, iso_accum_t iso_threshold_2, ap_uint<1> is_last)
+// {
+//     #pragma HLS pipeline II=1
+//     #pragma HLS interface ap_stable port=iso_threshold_1
+//     #pragma HLS interface ap_stable port=iso_threshold_2
 
-    return isolation_single_muon <999> (in_mu, in_tracks, iso_threshold, is_last);
-}
+//     return isolation_single_muon <999> (in_mu, in_tracks, is_last, iso_threshold_1, iso_threshold_2);
+// }
 
 
 

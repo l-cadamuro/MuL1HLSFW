@@ -17,7 +17,7 @@ typedef ap_uint<1>  hw_q_t;    // LSB : 1
 typedef ap_int<13>   hw_d0_t;     // d0 max: 15.4 cm
 typedef ap_uint<62>  hw_spare_t;  // full muon track has 128 bits : 128 - 66 = 62 bits
 
-typedef ap_uint<1>  hw_iso_t;  // two bits for isolation WPs
+typedef ap_uint<2>  hw_iso_t;  // two bits for isolation WPs
 
 // ap_fixed <total_bits, integer_part_bits, rounding mode, overflow mode, >
 struct muon_t {

@@ -71,8 +71,8 @@ create_clock -period 2.083 -name default
 puts "@@@ C SIM"
 csim_design
 
-puts "@@@ C SYNTH"
-csynth_design
+# puts "@@@ C SYNTH"
+# csynth_design
 
 # puts "@@@ C/RTL COSYM"
 # cosim_design -trace_level all

@@ -104,7 +104,7 @@ void dump_results(int ievt, muon_data_t in_mu, muon_isodata_t iso_flags, std::of
         in_mu.mu_11,
     };
 
-    std::vector<ap_uint<1> > isoflags = {
+    std::vector<hw_iso_t> isoflags = {
         iso_flags.isomu_0,
         iso_flags.isomu_1,
         iso_flags.isomu_2,
@@ -123,7 +123,7 @@ void dump_results(int ievt, muon_data_t in_mu, muon_isodata_t iso_flags, std::of
     for (size_t i = 0; i < muons.size(); ++i)
     {
         muon_t     thismu  = muons.at(i);
-        ap_uint<1> thisiso = isoflags.at(i);
+        hw_iso_t   thisiso = isoflags.at(i);
         if (drop_invalid && thismu.pt.to_double() < 1)
             continue;
         
@@ -152,7 +152,7 @@ void convert_and_dump_results(int ievt, muon_data_t in_mu, muon_isodata_t iso_fl
         in_mu.mu_11,
     };
 
-    std::vector<ap_uint<1> > isoflags = {
+    std::vector<hw_iso_t> isoflags = {
         iso_flags.isomu_0,
         iso_flags.isomu_1,
         iso_flags.isomu_2,
@@ -171,7 +171,7 @@ void convert_and_dump_results(int ievt, muon_data_t in_mu, muon_isodata_t iso_fl
     for (size_t i = 0; i < muons.size(); ++i)
     {
         muon_t     thismu  = muons.at(i);
-        ap_uint<1> thisiso = isoflags.at(i);
+        hw_iso_t   thisiso = isoflags.at(i);
         if (drop_invalid && thismu.pt.to_double() < 1)
             continue;
         
@@ -200,7 +200,7 @@ void convert_and_dump_results_fulldata(int ievt, isomuon_data_t out_muons, std::
         out_muons.mu_11.mu,
     };
 
-    std::vector< hw_iso_t > isoflags = {
+    std::vector<hw_iso_t> isoflags = {
         out_muons.mu_0.isoflags,
         out_muons.mu_1.isoflags,
         out_muons.mu_2.isoflags,
@@ -219,7 +219,7 @@ void convert_and_dump_results_fulldata(int ievt, isomuon_data_t out_muons, std::
     for (size_t i = 0; i < muons.size(); ++i)
     {
         muon_t     thismu  = muons.at(i);
-        ap_uint<1> thisiso = isoflags.at(i);
+        hw_iso_t   thisiso = isoflags.at(i);
         if (drop_invalid && thismu.pt.to_double() < 1)
             continue;
         
@@ -446,7 +446,8 @@ int main()
             //     std::cout << "... isolation results " << iso_flag.to_uint() << std::endl;
             // }
 
-            iso_accum_t iso_threshold = c_iso_sumpt_thr;
+            iso_accum_t iso_threshold_1 = c_iso_sumpt_thr_1;
+            iso_accum_t iso_threshold_2 = c_iso_sumpt_thr_2;
             
             // muon_isodata_t iso_flags;
             isomuon_data_t iso_muons;
@@ -456,7 +457,7 @@ int main()
             //-------------------- 18 tracks per link
             #if RUN_DOUBLE_CLK_SPEED == 0
             // isolation_allmu(mudata, tracks_data, is_last, iso_threshold, iso_flags);
-            isolation_allmu(mudata, tracks_data, is_last, iso_threshold, iso_muons);
+            isolation_allmu(mudata, tracks_data, is_last, iso_threshold_1, iso_threshold_2, iso_muons);
             //--------------------------------------------------------------
 
 
@@ -464,8 +465,8 @@ int main()
             #else
             // isolation_allmu_9trk(mudata, tracks_data_9_p1, 0, iso_threshold, iso_flags);
             // isolation_allmu_9trk(mudata, tracks_data_9_p2, is_last, iso_threshold, iso_flags);
-            isolation_allmu_9trk(mudata, tracks_data_9_p1, 0, iso_threshold, iso_muons);
-            isolation_allmu_9trk(mudata, tracks_data_9_p2, is_last, iso_threshold, iso_muons);
+            isolation_allmu_9trk(mudata, tracks_data_9_p1, 0,       iso_threshold_1, iso_threshold_2, iso_muons);
+            isolation_allmu_9trk(mudata, tracks_data_9_p2, is_last, iso_threshold_1, iso_threshold_2, iso_muons);
             #endif
 
             // //--------------------------------------------------------------
