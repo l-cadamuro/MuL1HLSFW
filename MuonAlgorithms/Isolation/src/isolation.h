@@ -450,8 +450,15 @@ hw_iso_t isolation_single_muon_9trk(muon_t in_mu, track_data_9_t in_tracks, ap_u
         // else
         //     result.range(1,1) = 0;
 
+        // abs iso    
         result.range(0,0) = (tot_sum < iso_threshold_1 ? 1 : 0);
         result.range(1,1) = (tot_sum < iso_threshold_2 ? 1 : 0);
+
+        // rel iso
+        // iso_accum_t rel_thresh_1 = iso_threshold_1 * in_mu.pt;
+        // iso_accum_t rel_thresh_2 = iso_threshold_2 * in_mu.pt;
+        // result.range(0,0) = (tot_sum < rel_thresh_1 ? 1 : 0);
+        // result.range(1,1) = (tot_sum < rel_thresh_2 ? 1 : 0);
 
         #ifndef __SYNTHESIS__
         #if ISODEBUG

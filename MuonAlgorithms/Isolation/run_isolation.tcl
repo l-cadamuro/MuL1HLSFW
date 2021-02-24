@@ -37,9 +37,14 @@ puts "@@@ Opening project"
 # open_project -reset projIsolation_9trk_xcvu13p_480MHz
 # set_top isolation_allmu_9trk
 
-open_project -reset projIsolation_9trk_xczu19eg_480MHz
-set_top isolation_allmu_9trk
+# open_project -reset projIsolation_9trk_xczu19eg_480MHz
+# set_top isolation_allmu_9trk
 
+# open_project -reset projIsolation_9trk_xczu19eg_480MHz_noreliso
+# set_top isolation_allmu_9trk
+
+open_project -reset projIsolation_9trk_xczu19eg_480MHz_noreliso_test24Feb2021
+set_top isolation_allmu_9trk
 
 add_files src/isolation.cpp
 # add_files src/df_conversions.cpp
@@ -71,11 +76,11 @@ create_clock -period 2.083 -name default
 puts "@@@ C SIM"
 csim_design
 
-# puts "@@@ C SYNTH"
-# csynth_design
+puts "@@@ C SYNTH"
+csynth_design
 
-# puts "@@@ C/RTL COSYM"
-# cosim_design -trace_level all
+puts "@@@ C/RTL COSYM"
+cosim_design -trace_level all
 
 # puts "@@@ Export IP and place&route"
 # export_design -format ip_catalog  -vendor "cern-cms" -flow impl -description "GMT_isolation_algorithm"

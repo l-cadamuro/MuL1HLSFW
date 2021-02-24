@@ -4,6 +4,8 @@
 #include "ap_int.h"
 #include "ap_fixed.h"
 
+// #define USE_REL_ISO 1 // 0 : absolute iso, 1 : relative iso
+
 ///////////////////////////////////////////////////////////////
 ////// basic data types definitions
 
